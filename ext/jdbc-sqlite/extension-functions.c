@@ -456,7 +456,7 @@ static double log10(double x){
 }
 #endif
 
-GEN_MATH_WRAP_DOUBLE_1(logFunc, log)
+GEN_MATH_WRAP_DOUBLE_1(logFuncExt, log)
 GEN_MATH_WRAP_DOUBLE_1(log10Func, log10)
 GEN_MATH_WRAP_DOUBLE_1(expFunc, exp)
 
@@ -486,7 +486,7 @@ GEN_MATH_WRAP_DOUBLE_1(rad2degFunc, rad2deg)
 GEN_MATH_WRAP_DOUBLE_1(deg2radFunc, deg2rad)
 
 /* constant function that returns the value of PI=3.1415... */
-static void piFunc(sqlite3_context *context, int argc, sqlite3_value **argv){
+static void piFuncExt(sqlite3_context *context, int argc, sqlite3_value **argv){
   sqlite3_result_double(context, M_PI);
 }
 
@@ -1728,7 +1728,7 @@ int RegisterExtensionFunctions(sqlite3 *db){
     { "coth",               1, 0, SQLITE_UTF8,    0, cothFunc },
 
     { "exp",                1, 0, SQLITE_UTF8,    0, expFunc  },
-    { "log",                1, 0, SQLITE_UTF8,    0, logFunc  },
+    { "log",                1, 0, SQLITE_UTF8,    0, logFuncExt  },
     { "log10",              1, 0, SQLITE_UTF8,    0, log10Func  },
     { "power",              2, 0, SQLITE_UTF8,    0, powerFunc  },
 #if SQLITE_VERSION_NUMBER < 3035000
@@ -1740,7 +1740,7 @@ int RegisterExtensionFunctions(sqlite3 *db){
     { "ceil",               1, 0, SQLITE_UTF8,    0, ceilFunc },
     { "floor",              1, 0, SQLITE_UTF8,    0, floorFunc },
 
-    { "pi",                 0, 0, SQLITE_UTF8,    1, piFunc },
+    { "pi",                 0, 0, SQLITE_UTF8,    1, piFuncExt },
 
 
     /* string */

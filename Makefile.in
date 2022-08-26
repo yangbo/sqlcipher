@@ -30,12 +30,11 @@ BCC = @BUILD_CC@ @BUILD_CFLAGS@
 # on the "make" command-line.  Ex:  "make CC=clang CFLAGS=-fsanitize=undefined"
 #
 CC = @CC@
+# 默认就带 SQLITE_HAS_CODEC, 省去每次要配置这个选项
 CFLAGS = @CPPFLAGS@ @CFLAGS@ -DSQLITE_HAS_CODEC
 TCC = ${CC} ${CFLAGS} -I. -I${TOP}/src -I${TOP}/ext/rtree -I${TOP}/ext/icu
 TCC += -I${TOP}/ext/fts3 -I${TOP}/ext/async -I${TOP}/ext/session
 TCC += -I${TOP}/ext/userauth
-# sqlite-jdbc: 加上了 JNI 头文件路径
-TCC += -I${JAVA_HOME}/include
 
 # Define this for the autoconf-based build, so that the code knows it can
 # include the generated config.h
@@ -788,6 +787,7 @@ mptest:	mptester$(TEXE)
 	$(MPTEST2) --journalmode DELETE
 
 
+
 # This target creates a directory named "tsrc" and fills it with
 # copies of all of the C source code and header files needed to
 # build on the target system.  Some of the C source code and header
@@ -807,21 +807,28 @@ mptest:	mptester$(TEXE)
 # 为 sqlite-jdbc 修改源代码
 SQLITE_SOURCE=tsrc
 SQLITE_OUT=tsrc
+# Generate amalgamation sqlite3.c file
 sqlite3.c: .target_source $(TOP)/tool/mksqlite3c.tcl
 	$(TCLSH_CMD) $(TOP)/tool/mksqlite3c.tcl $(AMALGAMATION_LINE_MACROS)
 	cp tsrc/sqlite3ext.h .
 	cp $(TOP)/ext/session/sqlite3session.h .
+
 	echo '为 jdbc-sqlite 修改 sqlite3.c ...'
+# 关闭扩展初始化函数宏，我认为没有作用，可以去掉
 	perl -p -e "s/sqlite3_api;/sqlite3_api = 0;/g" \
-		$(SQLITE_SOURCE)/sqlite3ext.h > $(SQLITE_OUT)/sqlite3ext.h
+		$(SQLITE_SOURCE)/sqlite3ext.h > $(TOP)/sqlite3ext.h
+		
 # insert a code for loading extension functions
-		perl -p -e "s/^opendb_out:/  if(!db->mallocFailed && rc==SQLITE_OK){ rc = RegisterExtensionFunctions(db); }\nopendb_out:/;" \
-			$(SQLITE_SOURCE)/sqlite3.c > $(SQLITE_OUT)/sqlite3.c.tmp
+# 装载 extention_functions.c 扩展函数
+	perl -p -e "s/^opendb_out:/  if(!db->mallocFailed && rc==SQLITE_OK){ int RegisterExtensionFunctions(sqlite3 *db); rc = RegisterExtensionFunctions(db); }\nopendb_out:/;" \
+		$(TOP)/sqlite3.c > $(TOP)/sqlite3.c.tmp
+			
 # register compile option 'JDBC_EXTENSIONS'
+# 这个写法有问题，因为没有按照要求放置到字典位置
 # limits defined here: https://www.sqlite.org/limits.html
-		perl -p -e "s/^(static const char \* const sqlite3azCompileOpt.+)$$/\1\n\n\/* This has been automatically added by sqlite-jdbc *\/\n  \"JDBC_EXTENSIONS\",/;" \
-			$(SQLITE_OUT)/sqlite3.c.tmp > $(SQLITE_OUT)/sqlite3.c
-		cat ext/jdbc-sqlite/*.c >> $(SQLITE_OUT)/sqlite3.c
+	perl -p -e "s/^(static const char \* const sqlite3azCompileOpt.+)$$/\1\n\n\/* This has been automatically added by sqlite-jdbc *\/\n  \"JDBC_EXTENSIONS\",/;" \
+		$(TOP)/sqlite3.c.tmp > $(TOP)/sqlite3.c
+	cat ext/jdbc-sqlite/*.c >> $(TOP)/sqlite3.c
 
 sqlite3ext.h:	.target_source
 	cp tsrc/sqlite3ext.h .
