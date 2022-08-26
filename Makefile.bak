@@ -15,13 +15,13 @@
 # The toplevel directory of the source tree.  This is the directory
 # that contains this "Makefile.in" and the "configure.in" script.
 #
-TOP = @abs_srcdir@
+TOP = /home/yangbo/git/sqlite/sqlcipher
 
 
 # C Compiler and options for use in building executables that
 # will run on the platform that is doing the build.
 #
-BCC = @BUILD_CC@ @BUILD_CFLAGS@
+BCC = gcc  -DSQLITE_HAS_CODEC -DSQLCIPHER_CRYPTO_OPENSSL
 
 # TCC is the C Compile and options for use in building executables that
 # will run on the target platform.  (BCC and TCC are usually the
@@ -29,13 +29,11 @@ BCC = @BUILD_CC@ @BUILD_CFLAGS@
 # are provide so that these aspects of the build process can be changed
 # on the "make" command-line.  Ex:  "make CC=clang CFLAGS=-fsanitize=undefined"
 #
-CC = @CC@
-CFLAGS = @CPPFLAGS@ @CFLAGS@ -DSQLITE_HAS_CODEC
+CC = gcc
+CFLAGS =   -DSQLITE_HAS_CODEC -DSQLCIPHER_CRYPTO_OPENSSL -DSQLITE_OS_UNIX=1
 TCC = ${CC} ${CFLAGS} -I. -I${TOP}/src -I${TOP}/ext/rtree -I${TOP}/ext/icu
 TCC += -I${TOP}/ext/fts3 -I${TOP}/ext/async -I${TOP}/ext/session
 TCC += -I${TOP}/ext/userauth
-# sqlite-jdbc: 加上了 JNI 头文件路径
-TCC += -I${JAVA_HOME}/include
 
 # Define this for the autoconf-based build, so that the code knows it can
 # include the generated config.h
@@ -46,32 +44,32 @@ TCC += -D_HAVE_SQLITE_CONFIG_H -DBUILD_sqlite
 # Omitting the define will cause extra debugging code to be inserted and
 # includes extra comments when "EXPLAIN stmt" is used.
 #
-TCC += @TARGET_DEBUG@
+TCC += -DNDEBUG
 
 # Compiler options needed for programs that use the TCL library.
 #
-TCC += @TCL_INCLUDE_SPEC@
+TCC += 
 
 # The library that programs using TCL must link against.
 #
-LIBTCL = @TCL_LIB_SPEC@
+LIBTCL = 
 
 # Compiler options needed for programs that use the readline() library.
 #
-READLINE_FLAGS = -DHAVE_READLINE=@TARGET_HAVE_READLINE@ @TARGET_READLINE_INC@
-READLINE_FLAGS += -DHAVE_EDITLINE=@TARGET_HAVE_EDITLINE@
+READLINE_FLAGS = -DHAVE_READLINE=0 
+READLINE_FLAGS += -DHAVE_EDITLINE=0
 
 # The library that programs using readline() must link against.
 #
-LIBREADLINE = @TARGET_READLINE_LIBS@
+LIBREADLINE = 
 
 # Should the database engine be compiled threadsafe
 #
-TCC += -DSQLITE_THREADSAFE=@SQLITE_THREADSAFE@
+TCC += -DSQLITE_THREADSAFE=1
 
 # Any target libraries which libsqlite must be linked against
 #
-TLIBS = @LIBS@ $(LIBS)
+TLIBS = -lm -ldl -lcrypto -lpthread  $(LIBS)
 
 # Flags controlling use of the in memory btree implementation
 #
@@ -79,34 +77,13 @@ TLIBS = @LIBS@ $(LIBS)
 # default to file, 2 to default to memory, and 3 to force temporary
 # tables to always be in memory.
 #
-TEMP_STORE = -DSQLITE_TEMP_STORE=@TEMP_STORE@
+TEMP_STORE = -DSQLITE_TEMP_STORE=2
 
 # Enable/disable loadable extensions, and other optional features
 # based on configuration. (-DSQLITE_OMIT*, -DSQLITE_ENABLE*).
 # The same set of OMIT and ENABLE flags should be passed to the
 # LEMON parser generator and the mkkeywordhash tool as well.
-# sqlite-jdbc: 加入了jdbc需要的特性
-OPT_FEATURE_FLAGS = @OPT_FEATURE_FLAGS@ -DSQLITE_ENABLE_LOAD_EXTENSION=1 \
-	    -DSQLITE_HAVE_ISNAN \
-	    -DHAVE_USLEEP=1 \
-	    -DSQLITE_ENABLE_COLUMN_METADATA \
-	    -DSQLITE_CORE \
-	    -DSQLITE_ENABLE_FTS3 \
-	    -DSQLITE_ENABLE_FTS3_PARENTHESIS \
-	    -DSQLITE_ENABLE_FTS5 \
-	    -DSQLITE_ENABLE_RTREE \
-	    -DSQLITE_ENABLE_STAT4 \
-	    -DSQLITE_THREADSAFE=1 \
-	    -DSQLITE_DEFAULT_MEMSTATUS=0 \
-	    -DSQLITE_DEFAULT_FILE_PERMISSIONS=0666 \
-	    -DSQLITE_MAX_VARIABLE_NUMBER=250000 \
-	    -DSQLITE_MAX_MMAP_SIZE=1099511627776 \
-	    -DSQLITE_MAX_LENGTH=2147483647 \
-	    -DSQLITE_MAX_COLUMN=32767 \
-	    -DSQLITE_MAX_SQL_LENGTH=1073741824 \
-	    -DSQLITE_MAX_FUNCTION_ARG=127 \
-	    -DSQLITE_MAX_ATTACHED=125 \
-	    -DSQLITE_MAX_PAGE_COUNT=4294967294 \
+OPT_FEATURE_FLAGS =  -DSQLITE_ENABLE_MATH_FUNCTIONS
 
 TCC += $(OPT_FEATURE_FLAGS)
 
@@ -115,38 +92,38 @@ TCC += $(OPT_FEATURE_FLAGS)
 TCC += $(OPTS)
 
 # Add in compile-time options for some libraries used by extensions
-TCC += @HAVE_ZLIB@
+TCC += 
 
 # Version numbers and release number for the SQLite being compiled.
 #
-VERSION = @VERSION@
+VERSION = 3.39
 VERSION_NUMBER = @VERSION_NUMBER@
-RELEASE = @RELEASE@
+RELEASE = 3.39.2
 
 # Filename extensions
 #
-BEXE = @BUILD_EXEEXT@
-TEXE = @TARGET_EXEEXT@
+BEXE = 
+TEXE = 
 
 # The following variable is "1" if the configure script was able to locate
 # the tclConfig.sh file.  It is an empty string otherwise.  When this
 # variable is "1", the TCL extension library (libtclsqlite3.so) is built
 # and installed.
 #
-HAVE_TCL = @HAVE_TCL@
+HAVE_TCL = 
 
 # This is the command to use for tclsh - normally just "tclsh", but we may
 # know the specific version we want to use
 #
-TCLSH_CMD = @TCLSH_CMD@
+TCLSH_CMD = tclsh8.6
 
 # Where do we want to install the tcl plugin
 #
-TCLLIBDIR = @TCLLIBDIR@
+TCLLIBDIR = /usr/share/tcltk/tcl8.6/sqlite3
 
 # The suffix used on shared libraries.  Ex:  ".dll", ".so", ".dylib"
 #
-SHLIB_SUFFIX = @TCL_SHLIB_SUFFIX@
+SHLIB_SUFFIX = 
 
 # If gcov support was enabled by the configure script, add the appropriate
 # flags here.  It's not always as easy as just having the user add the right
@@ -161,7 +138,7 @@ SHLIB_SUFFIX = @TCL_SHLIB_SUFFIX@
 #
 GCOV_CFLAGS1 = -DSQLITE_COVERAGE_TEST=1 -fprofile-arcs -ftest-coverage
 GCOV_LDFLAGS1 = -lgcov
-USE_GCOV = @USE_GCOV@
+USE_GCOV = 0
 LTCOMPILE_EXTRAS += $(GCOV_CFLAGS$(USE_GCOV))
 LTLINK_EXTRAS += $(GCOV_LDFLAGS$(USE_GCOV))
 
@@ -190,26 +167,26 @@ CRYPTOSRC = \
 
 # Some standard variables and programs
 #
-prefix = @prefix@
-exec_prefix = @exec_prefix@
-libdir = @libdir@
+prefix = /usr/local
+exec_prefix = ${prefix}
+libdir = ${exec_prefix}/lib
 pkgconfigdir = $(libdir)/pkgconfig
-bindir = @bindir@
-includedir = @includedir@/sqlcipher
-INSTALL = @INSTALL@
+bindir = ${exec_prefix}/bin
+includedir = ${prefix}/include/sqlcipher
+INSTALL = /usr/bin/install -c
 LIBTOOL = ./libtool
-ALLOWRELEASE = @ALLOWRELEASE@
+ALLOWRELEASE = 
 
 # libtool compile/link/install
 LTCOMPILE = $(LIBTOOL) --mode=compile --tag=CC $(TCC) $(LTCOMPILE_EXTRAS)
-LTLINK = $(LIBTOOL) --mode=link $(TCC) $(LTCOMPILE_EXTRAS) @LDFLAGS@ $(LTLINK_EXTRAS)
+LTLINK = $(LIBTOOL) --mode=link $(TCC) $(LTCOMPILE_EXTRAS) -lcrypto $(LTLINK_EXTRAS)
 LTINSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 # You should not have to change anything below this line
 ###############################################################################
 
-USE_AMALGAMATION = @USE_AMALGAMATION@
-AMALGAMATION_LINE_MACROS = @AMALGAMATION_LINE_MACROS@
+USE_AMALGAMATION = 1
+AMALGAMATION_LINE_MACROS = --linemacros=0
 
 # Object files for the SQLite library (non-amalgamation).
 #
@@ -237,11 +214,11 @@ LIBOBJS0 = alter.lo analyze.lo attach.lo auth.lo \
          vdbe.lo vdbeapi.lo vdbeaux.lo vdbeblob.lo vdbemem.lo vdbesort.lo \
          vdbetrace.lo vdbevtab.lo \
          wal.lo walker.lo where.lo wherecode.lo whereexpr.lo \
-         window.lo utf.lo vtab.lo $(CRYPTOLIBOBJ) NativeDB.lo
+         window.lo utf.lo vtab.lo $(CRYPTOLIBOBJ)
 
 # Object files for the amalgamation.
-# sqlite-jdbc: 加上 JNI 对象
-LIBOBJS1 = sqlite3.lo NativeDB.lo
+#
+LIBOBJS1 = sqlite3.lo
 
 # Determine the real value of LIBOBJ based on the 'configure' script
 #
@@ -696,7 +673,7 @@ libsqlcipher.la:	$(LIBOBJ)
 
 libtclsqlite3.la:	tclsqlite.lo libsqlcipher.la
 	$(LTLINK) -no-undefined -o $@ tclsqlite.lo \
-		libsqlcipher.la @TCL_STUB_LIB_SPEC@ $(TLIBS) \
+		libsqlcipher.la  $(TLIBS) \
 		-rpath "$(TCLLIBDIR)" \
 		-version-info "8:6:8" \
 		-avoid-version
@@ -804,24 +781,10 @@ mptest:	mptester$(TEXE)
 	cp fts5.c fts5.h tsrc
 	touch .target_source
 
-# 为 sqlite-jdbc 修改源代码
-SQLITE_SOURCE=tsrc
-SQLITE_OUT=tsrc
-sqlite3.c: .target_source $(TOP)/tool/mksqlite3c.tcl
+sqlite3.c:	.target_source $(TOP)/tool/mksqlite3c.tcl
 	$(TCLSH_CMD) $(TOP)/tool/mksqlite3c.tcl $(AMALGAMATION_LINE_MACROS)
 	cp tsrc/sqlite3ext.h .
 	cp $(TOP)/ext/session/sqlite3session.h .
-	echo '为 jdbc-sqlite 修改 sqlite3.c ...'
-	perl -p -e "s/sqlite3_api;/sqlite3_api = 0;/g" \
-		$(SQLITE_SOURCE)/sqlite3ext.h > $(SQLITE_OUT)/sqlite3ext.h
-# insert a code for loading extension functions
-		perl -p -e "s/^opendb_out:/  if(!db->mallocFailed && rc==SQLITE_OK){ rc = RegisterExtensionFunctions(db); }\nopendb_out:/;" \
-			$(SQLITE_SOURCE)/sqlite3.c > $(SQLITE_OUT)/sqlite3.c.tmp
-# register compile option 'JDBC_EXTENSIONS'
-# limits defined here: https://www.sqlite.org/limits.html
-		perl -p -e "s/^(static const char \* const sqlite3azCompileOpt.+)$$/\1\n\n\/* This has been automatically added by sqlite-jdbc *\/\n  \"JDBC_EXTENSIONS\",/;" \
-			$(SQLITE_OUT)/sqlite3.c.tmp > $(SQLITE_OUT)/sqlite3.c
-		cat ext/jdbc-sqlite/*.c >> $(SQLITE_OUT)/sqlite3.c
 
 sqlite3ext.h:	.target_source
 	cp tsrc/sqlite3ext.h .
@@ -877,10 +840,6 @@ crypto_libtomcrypt.lo:	$(TOP)/src/crypto_libtomcrypt.c $(HDR)
 crypto_cc.lo:	$(TOP)/src/crypto_cc.c $(HDR)
 	$(LTCOMPILE) -c $(TOP)/src/crypto_cc.c
 # END CRYPTO
-
-# sqlite-jdbc: 编译 NativeDB.lo，需要定义 JAVA_HOME 环境变量
-NativeDB.lo:	$(TOP)/jdbc/NativeDB.c $(TOP)/jdbc/NativeDB.h $(TOP)/jdbc/jni.h $(TOP)/jdbc/jni_md.h
-	$(LTCOMPILE) -c $(TOP)/jdbc/NativeDB.c -I$(JAVA_HOME)/include -I$(TOP)/jdbc -o $@
 
 # Rules to build individual *.o files from files in the src directory.
 #
